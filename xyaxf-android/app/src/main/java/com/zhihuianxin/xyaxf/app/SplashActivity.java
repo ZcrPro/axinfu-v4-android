@@ -5,6 +5,7 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.zhihuianxin.axutil.Util;
 import com.zhihuianxin.xyaxf.App;
 import com.zhihuianxin.xyaxf.R;
+import com.zhihuianxin.xyaxf.app.login.LoginActivity;
 import com.zhihuianxin.xyaxf.database.DBLastVersion;
 import com.zhihuianxin.xyaxf.database.DBLastVersion_Table;
 
@@ -162,9 +164,8 @@ public class SplashActivity extends BaseActionBarActivity {
     }
 
     public void inputLocalMobil() {
-//        startActivity(new Intent(this,LoginInputMobilActivityNew.class));
-//        finish();
-        Toast.makeText(this, "去登录注册", Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(this,LoginActivity.class));
+        finish();
     }
 
     public void alreadyLogin() {
