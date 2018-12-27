@@ -1,0 +1,38 @@
+<resources>
+
+    <dimen name="text_size_h4">@dimen/s24</dimen>
+    <dimen name="text_size_h3">@dimen/s22</dimen>
+    <dimen name="text_size_h2">@dimen/s20</dimen>
+    <dimen name="text_size_h1">@dimen/s18</dimen>
+    <dimen name="text_size_m">@dimen/s16</dimen>
+    <dimen name="text_size_s1">@dimen/s14</dimen>
+    <dimen name="text_size_s2">@dimen/s12</dimen>
+    <dimen name="text_size_s3">@dimen/s11</dimen>
+    <dimen name="text_size_s4">@dimen/s10</dimen>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="loading_dialog" parent="android:Theme.Dialog">
+        <item name="android:windowIsTranslucent">false</item>
+        <!--<item name="android:backgroundDimEnabled">false</item>-->
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <declare-styleable name="GifView">
+        <attr name="gif" format="reference" />
+        <attr name="paused" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="CustomTheme">
+        <attr name="gifViewStyle" format="reference" />
+    </declare-styleable>
+    <style name="Widget_GifView"/>
+
+</resources>

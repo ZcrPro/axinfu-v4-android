@@ -1,0 +1,145 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+    useLibrary 'org.apache.http.legacy'
+    defaultConfig {
+        vectorDrawables.useSupportLibrary = true
+        applicationId "com.zhihuianxin.xyaxf"
+        minSdkVersion 21
+        targetSdkVersion 27
+        versionCode 382
+        versionName "3.8.2"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                includeCompileClasspath true  //annotationProcessor
+            }
+        }
+
+        ndk {
+            abiFilters "armeabi-v7a", "x86"
+        }
+    }
+
+    repositories {
+        flatDir {
+            dirs 'libs'   // aar目录
+        }
+    }
+
+    signingConfigs {
+        debug {
+            keyAlias debug_store_key_alias
+            keyPassword debug_store_key_password
+            storeFile rootProject.file(debug_key_file)
+            storePassword debug_store_password
+            v2SigningEnabled true
+        }
+        release {
+            keyAlias release_store_key_alias
+            keyPassword release_store_key_password
+            storeFile rootProject.file(release_key_file)
+            storePassword release_store_key_password
+            v2SigningEnabled true
+        }
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField "boolean", "AnXinDEBUG", "true"
+            buildConfigField "String", "API_HOST", "\"https://appserver-v2-test.zhihuianxin.com/app-service/2.0.5/\""
+            minifyEnabled false
+            applicationIdSuffix ".debug"
+            signingConfig signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [
+                    GETUI_APP_ID    : "5Nw5fa7FTHAgg7mEhBwI89",
+                    GETUI_APP_KEY   : "nHc3UJpr8M6LFYAzBmHjW5",
+                    GETUI_APP_SECRET: "xdpLzRLx6W7xx6EceYTkA8",
+                    PACKAGE_NAME    : defaultConfig.applicationId + applicationIdSuffix,
+                    Suffix          : applicationIdSuffix,
+                    DAFANGYA        : 'com.zhihuianxin.xyaxf.debug.fileprovider',
+                    APP_ICON        : "app_icon_debug"]
+        }
+        preview {
+            buildConfigField "boolean", "AnXinDEBUG", "false"
+            buildConfigField "String", "API_HOST", "\"https://appserver-preview.axinfu.com/app-service/2.0.5/\""
+            applicationIdSuffix ""
+            minifyEnabled false
+            zipAlignEnabled false
+            debuggable true
+            shrinkResources false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [
+                    GETUI_APP_ID    : "vuuynusxhb7r1pP6sxV597",
+                    GETUI_APP_KEY   : "1D0xavcwDbAH8yoFM9BL42",
+                    GETUI_APP_SECRET: "SynzdZ8f3o5OUuCEFAQSl4",
+                    PACKAGE_NAME    : defaultConfig.applicationId + applicationIdSuffix,
+                    Suffix          : applicationIdSuffix,
+                    DAFANGYA        : 'com.zhihuianxin.xyaxf.preview.fileprovider',
+                    APP_ICON        : "app_icon_preview"]
+        }
+        release {
+            buildConfigField "boolean", "AnXinDEBUG", "false"
+            buildConfigField "String", "API_HOST", "\"https://appserver-v2.axinfu.com/app-service/2.0.5/\""
+            minifyEnabled false
+            zipAlignEnabled false
+            shrinkResources false
+            debuggable true
+            signingConfig signingConfigs.release
+            applicationIdSuffix ""
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [
+                    GETUI_APP_ID    : "vuuynusxhb7r1pP6sxV597",
+                    GETUI_APP_KEY   : "1D0xavcwDbAH8yoFM9BL42",
+                    GETUI_APP_SECRET: "SynzdZ8f3o5OUuCEFAQSl4",
+                    PACKAGE_NAME    : defaultConfig.applicationId + applicationIdSuffix,
+                    Suffix          : applicationIdSuffix,
+                    DAFANGYA        : 'com.zhihuianxin.xyaxf.fileprovider',
+                    APP_ICON        : "app_icon_android"]
+        }
+    }
+}
+
+def dbflow_version = "4.2.4"
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    testImplementation 'junit:junit:4.12'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    //滑动标题栏切换fragment控件
+    implementation 'com.jpardogo.materialtabstrip:library:1.1.1'
+    implementation 'com.github.thepacific:adapter:1.0.6'
+    implementation 'com.jakewharton:butterknife:5.1.1'
+    implementation 'com.getui:sdk:2.12.5.0'
+    //学校列表字母索引栏
+    implementation 'com.gjiazhe:wavesidebar:1.2'
+    //js
+    implementation 'com.github.lzyzsd:jsbridge:1.0.4'
+    //列表布局的展开
+    implementation 'com.jaydenxiao:ExpandableTextView:1.0.0'
+    implementation 'com.daimajia.swipelayout:library:1.2.0@aar'
+    //二维码扫描
+    implementation 'com.google.zxing:core:3.3.0'
+    implementation 'cn.bingoogolapple:bga-qrcodecore:1.1.9@aar'
+    implementation 'cn.bingoogolapple:bga-zbar:1.1.9@aar'
+    implementation 'com.jaywei:PureVerticalSeekBar:1.0.0'
+    implementation 'com.github.codbking:PickTime:v1.0.1'
+    implementation 'com.android.support:multidex:1.0.0'
+    annotationProcessor "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflow_version}"
+    implementation "com.github.Raizlabs.DBFlow:dbflow-core:${dbflow_version}"
+    implementation "com.github.Raizlabs.DBFlow:dbflow:${dbflow_version}"
+    implementation 'com.ms-square:expandableTextView:0.1.4'
+    implementation(name: 'jdpayauthor-release', ext: 'aar')
+    implementation(name: 'musdk-release', ext: 'aar')
+    implementation 'com.github.nanchen2251:CompressHelper:1.0.5'
+    //压缩图片
+    implementation(name: 'android-agent-loader-release', ext: 'aar')
+    //建行e
+    implementation(name: 'esafeExpTP', ext: 'aar')
+    implementation 'com.github.open-android:PhotoImageView:0.1.0' //图片缩放
+    implementation project(':ax-lib')
+}
