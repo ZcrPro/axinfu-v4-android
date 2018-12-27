@@ -80,7 +80,7 @@
                     android:orientation="vertical">
 
                     <EditText
-                        android:id="@+id/editmobile2"
+                        android:id="@+id/regi_mobile"
                         style="@style/edit_text"
                         android:layout_toLeftOf="@+id/getver"
                         android:background="@null"
@@ -103,7 +103,7 @@
                         android:layout_weight="1">
 
                         <EditText
-                            android:id="@+id/editText"
+                            android:id="@+id/regi_ver_code"
                             style="@style/edit_text"
                             android:layout_toLeftOf="@+id/getver"
                             android:background="@null"
@@ -190,7 +190,7 @@
                     </RelativeLayout>
 
                     <EditText
-                        android:id="@+id/edit_pwd"
+                        android:id="@+id/regi_password"
                         style="@style/edit_text"
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentStart="true"
