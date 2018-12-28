@@ -5,7 +5,13 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.Editable;
+import android.text.Selection;
+import android.text.Spannable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.View;
@@ -71,11 +77,13 @@ public class LoginActivity extends Activity {
     @InjectView(R.id.editText_ver)
     EditText editTextVer;
     @InjectView(R.id.pwdlookok_ver)
-    ImageView pwdlookokVer;
+    ImageView mPwdLookOkImg;
     @InjectView(R.id.pwdlookun_ver)
-    ImageView pwdlookunVer;
-    @InjectView(R.id.pwdlook_ver)
-    RelativeLayout pwdlookVer;
+    ImageView mPwdLookunImg;
+    @InjectView(R.id.pwdlookok)
+    ImageView mPwdLookOkImgSet;
+    @InjectView(R.id.pwdlookun)
+    ImageView mPwdLookunImgSet;
     @InjectView(R.id.verpwd_view)
     RelativeLayout verpwdView;
     @InjectView(R.id.login_ed_mobile)
@@ -102,12 +110,23 @@ public class LoginActivity extends Activity {
 
     private long exitTime = 0;
 
+    private boolean login_mobile_status;
+    private boolean login_password_status;
+
+    private boolean regi_mobile_status;
+    private boolean regi_sms_code_status;
+    private boolean regi_password_status;
+
     //保存页面状态
     enum STATUE {
         INPUT(), SETPWD()
     }
 
     private STATUE mCurrStatus = STATUE.INPUT;
+
+    private boolean isHiddenVer = true;
+
+    private boolean isSetPwdHiddenVer = true;
 
     private String targeMobile; //处理app内部传来的手机号 帮用户预填手机号
 
@@ -128,7 +147,7 @@ public class LoginActivity extends Activity {
 
         verController = new VerController();
 
-        //处理app内部传来的手机号
+        //处理app内部传来的手机号做预填手机
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             bundle.getString("mobile");
@@ -137,12 +156,93 @@ public class LoginActivity extends Activity {
                 targeMobile = bundle.getString("mobile");
             }
         }
-
-
     }
 
     private void initUI() {
-        //登录状态
+
+        regiMobile.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!TextUtils.isEmpty(s.toString())) {
+                    regi_mobile_status = true;
+                    getver.setTextColor(getResources().getColor(R.color.axf_common_blue));
+                } else {
+                    regi_mobile_status = false;
+                    getver.setTextColor(getResources().getColor(R.color.gray_light));
+                }
+
+                if (regi_mobile_status && regi_sms_code_status && regi_password_status) {
+                    btnLogin.setEnabled(true);
+                } else {
+                    btnLogin.setEnabled(false);
+                }
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        regiVerCode.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!TextUtils.isEmpty(s.toString())) {
+                    regi_sms_code_status = true;
+                } else {
+                    regi_sms_code_status = false;
+                }
+
+                if (regi_mobile_status && regi_sms_code_status && regi_password_status) {
+                    btnLogin.setEnabled(true);
+                } else {
+                    btnLogin.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        regiPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!TextUtils.isEmpty(s.toString())) {
+                    regi_password_status = true;
+                } else {
+                    regi_password_status = false;
+                }
+
+                if (regi_mobile_status && regi_sms_code_status && regi_password_status) {
+                    btnLogin.setEnabled(true);
+                } else {
+                    btnLogin.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
     }
 
     @OnClick(R.id.login_new_user)
@@ -343,4 +443,53 @@ public class LoginActivity extends Activity {
 
         mCurrStatus = STATUE.INPUT;
     }
+
+
+    @OnClick(R.id.pwdlook_ver)
+    public void onBtnPwdLook() {
+        if (isHiddenVer) {
+            //设置EditText文本为可见的
+            regiPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            mPwdLookOkImg.setVisibility(View.VISIBLE);
+            mPwdLookunImg.setVisibility(View.GONE);
+
+        } else {
+            //设置EditText文本为隐藏的
+            regiPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            mPwdLookOkImg.setVisibility(View.GONE);
+            mPwdLookunImg.setVisibility(View.VISIBLE);
+        }
+        isHiddenVer = !isHiddenVer;
+        regiPassword.postInvalidate();
+        //切换后将EditText光标置于末尾
+        CharSequence charSequence = regiPassword.getText();
+        if (charSequence instanceof Spannable) {
+            Spannable spanText = (Spannable) charSequence;
+            Selection.setSelection(spanText, charSequence.length());
+        }
+    }
+
+    @OnClick(R.id.pwdlook)
+    public void onBtnPwdLookSet() {
+        if (isSetPwdHiddenVer) {
+            //设置EditText文本为可见的
+            regiPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            mPwdLookOkImgSet.setVisibility(View.VISIBLE);
+            mPwdLookunImgSet.setVisibility(View.GONE);
+        } else {
+            //设置EditText文本为隐藏的
+            regiPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            mPwdLookOkImgSet.setVisibility(View.GONE);
+            mPwdLookunImgSet.setVisibility(View.VISIBLE);
+        }
+        isSetPwdHiddenVer = !isSetPwdHiddenVer;
+        regiPassword.postInvalidate();
+        //切换后将EditText光标置于末尾
+        CharSequence charSequence = regiPassword.getText();
+        if (charSequence instanceof Spannable) {
+            Spannable spanText = (Spannable) charSequence;
+            Selection.setSelection(spanText, charSequence.length());
+        }
+    }
+
 }
