@@ -25,16 +25,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.zhihuianxin.xyaxf.R;
+import com.zhihuianxin.xyaxf.app.login.contract.ILoginHasPwdContract;
 import com.zhihuianxin.xyaxf.http.AppConstant;
+import com.zhihuianxin.xyaxf.modle.base.thrift.customer.Customer;
+import com.zhihuianxin.xyaxf.modle.base.thrift.customer.VerifyField;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 
-public class LoginActivity extends Activity {
+public class LoginActivity extends Activity implements ILoginHasPwdContract.ILoginHasPwdView{
 
+    //todo 每次登陆都刷新push_id 避免顶号的推送下发到老账号上面
 
     @InjectView(R.id.input_back)
     ImageView inputBack;
@@ -117,6 +122,47 @@ public class LoginActivity extends Activity {
     private boolean regi_sms_code_status;
     private boolean regi_password_status;
 
+    @Override
+    public void loginSuccess(Customer customer, String session) {
+
+    }
+
+    @Override
+    public void setPwdOrRegistAndLoginSuccess(Customer customer, String session) {
+
+    }
+
+    @Override
+    public void getVerCodeSuccess(String verCode) {
+        if (verCode!=null)
+        Toast.makeText(this, verCode, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void getmodifyPwdInfoResult(ArrayList<VerifyField> verify_fields) {
+
+    }
+
+    @Override
+    public void setPresenter(ILoginHasPwdContract.ILoginHasPwdPresenter presenter) {
+            this.presenter =presenter;
+    }
+
+    @Override
+    public void loadStart() {
+
+    }
+
+    @Override
+    public void loadError(String errorMsg) {
+
+    }
+
+    @Override
+    public void loadComplete() {
+
+    }
+
     //保存页面状态
     enum STATUE {
         INPUT(), SETPWD()
@@ -135,6 +181,8 @@ public class LoginActivity extends Activity {
 
     public static final int DEFAULT_COUNT = AppConstant.DEFAULT_COUNT;
     private int mCountDownDuration = DEFAULT_COUNT;
+
+    private ILoginHasPwdContract.ILoginHasPwdPresenter presenter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -490,6 +538,30 @@ public class LoginActivity extends Activity {
             Spannable spanText = (Spannable) charSequence;
             Selection.setSelection(spanText, charSequence.length());
         }
+    }
+
+    @OnClick(R.id.getver)
+    public void onBtnGetVer() {
+        if (TextUtils.isEmpty(regiMobile.getText().toString().trim())) {
+            Toast.makeText(this, "请填写手机号", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!isMobileNO(regiMobile.getText().toString().trim())) {
+            Toast.makeText(this, "请填写正确的手机号", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        presenter.getVerCode(regiMobile.getText().toString().trim());
+        LoginSendVerTask task = new LoginSendVerTask();
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    /**
+     * 在正式环境 也可能出现111222的手机账号进行测试 所以只判断位数
+     * @param mobiles
+     * @return
+     */
+    public static boolean isMobileNO(String mobiles) {
+        return mobiles.length() == 11;
     }
 
 }

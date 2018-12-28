@@ -28,5 +28,4 @@ public interface IAXLogin {
     @Default("false")
     boolean getHadShowSplash();
     void setHadShowSplash(boolean flag);
-
 }
