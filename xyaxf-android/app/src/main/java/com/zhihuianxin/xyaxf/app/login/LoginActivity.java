@@ -2,6 +2,8 @@ package com.zhihuianxin.xyaxf.app.login;
 
 import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,7 +14,9 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Base64;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -24,20 +28,45 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.zhihuianxin.xyaxf.App;
 import com.zhihuianxin.xyaxf.R;
 import com.zhihuianxin.xyaxf.app.login.contract.ILoginHasPwdContract;
+import com.zhihuianxin.xyaxf.app.login.presenter.LoginSetPwdOrRegistPresenter;
+import com.zhihuianxin.xyaxf.app.login.presenter.LoginVerPwdPresenter;
+import com.zhihuianxin.xyaxf.app.main.MainActivity;
+import com.zhihuianxin.xyaxf.app.main.resp.CustomerResponse;
+import com.zhihuianxin.xyaxf.cooperate.CooperateAppId;
+import com.zhihuianxin.xyaxf.cooperate.wuhan.WuhanDataBean;
+import com.zhihuianxin.xyaxf.http.ApiFactory;
 import com.zhihuianxin.xyaxf.http.AppConstant;
+import com.zhihuianxin.xyaxf.http.BaseResponse;
+import com.zhihuianxin.xyaxf.http.BaseSubscriber;
+import com.zhihuianxin.xyaxf.http.NetUtils;
+import com.zhihuianxin.xyaxf.http.RetrofitFactory;
+import com.zhihuianxin.xyaxf.modle.base.service.CustomerService;
+import com.zhihuianxin.xyaxf.modle.base.service.LoginService;
 import com.zhihuianxin.xyaxf.modle.base.thrift.customer.Customer;
 import com.zhihuianxin.xyaxf.modle.base.thrift.customer.VerifyField;
+import com.zhihuianxin.xyaxf.util.AxToast;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
-public class LoginActivity extends Activity implements ILoginHasPwdContract.ILoginHasPwdView{
+import static com.zhihuianxin.axutil.Util.Decrypt;
+import static com.zhihuianxin.axutil.Util.md5;
+
+public class LoginActivity extends Activity implements ILoginHasPwdContract.ILoginHasPwdView {
 
     //todo 每次登陆都刷新push_id 避免顶号的推送下发到老账号上面
 
@@ -79,8 +108,6 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
     TextView tvQiangdu;
     @InjectView(R.id.setPwdAllView)
     RelativeLayout setPwdAllView;
-    @InjectView(R.id.editText_ver)
-    EditText editTextVer;
     @InjectView(R.id.pwdlookok_ver)
     ImageView mPwdLookOkImg;
     @InjectView(R.id.pwdlookun_ver)
@@ -124,7 +151,13 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
 
     @Override
     public void loginSuccess(Customer customer, String session) {
-
+        LoginChangeDataForApp.updateDataForApp(customer,session);
+        if (customer.school!=null) {
+            startActivity(new Intent(this, MainActivity.class));
+        } else {
+            goLoginSelectCityActivity();
+        }
+        finish();
     }
 
     @Override
@@ -134,8 +167,8 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
 
     @Override
     public void getVerCodeSuccess(String verCode) {
-        if (verCode!=null)
-        Toast.makeText(this, verCode, Toast.LENGTH_LONG).show();
+        if (verCode != null)
+            Toast.makeText(this, verCode, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -145,7 +178,7 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
 
     @Override
     public void setPresenter(ILoginHasPwdContract.ILoginHasPwdPresenter presenter) {
-            this.presenter =presenter;
+        this.presenter = presenter;
     }
 
     @Override
@@ -557,6 +590,7 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
 
     /**
      * 在正式环境 也可能出现111222的手机账号进行测试 所以只判断位数
+     *
      * @param mobiles
      * @return
      */
@@ -564,4 +598,270 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
         return mobiles.length() == 11;
     }
 
+    @OnClick(R.id.btn_login)
+    public void onBtnNext() {
+        if (btnLogin.getText().equals("登录")) {
+            if (TextUtils.isEmpty(loginEdPassword.getText().toString().trim()) || loginEdPassword.getText().toString().trim().length() < 6) {
+                Toast.makeText(this, "密码必须大于或等于6位", Toast.LENGTH_SHORT).show();
+            } else {
+                //先判断是否是第三方的跳转
+                Uri uri = getIntent().getData();
+                if (uri != null) {
+                    String appid = uri.getQueryParameter("appid");
+                    String data = uri.getQueryParameter("data");
+                    if (appid != null && appid.equals(CooperateAppId.AppId)) {
+                        //如果id已经存在就说明第三方app的调用有效
+                        //去解密
+                        try {
+                            assert data != null;
+                            String sr = Decrypt(data, CooperateAppId.aesKey);
+                            Log.d("LoginInputMobilActivity", "解密内容：" + sr);
+                            WuhanDataBean dataBean = new Gson().fromJson(sr, WuhanDataBean.class);
+                            get_student_status(true, dataBean.school_code, dataBean.account_no, dataBean.account_name);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(this, "解析数据失败", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } else {
+                    presenter.login(loginEdMobile.getText().toString().trim(), loginEdPassword.getText().toString().trim(), App.mAxLoginSp.getUUID().replace("-", ""));
+                }
+            }
+
+        } else {
+            if (TextUtils.isEmpty(regiPassword.getText().toString().trim()) || regiPassword.getText().toString().trim().length() < 6) {
+                Toast.makeText(this, "密码必须大于或等于6位", Toast.LENGTH_SHORT).show();
+            } else {
+                //先判断是否是第三方的跳转
+                Uri uri = getIntent().getData();
+                if (uri != null) {
+                    String appid = uri.getQueryParameter("appid");
+                    String data = uri.getQueryParameter("data");
+                    if (appid != null && appid.equals(CooperateAppId.AppId)) {
+                        //如果id已经存在就说明第三方app的调用有效
+                        //去解密
+                        try {
+                            assert data != null;
+                            String sr = Decrypt(data, CooperateAppId.aesKey);
+                            WuhanDataBean dataBean = new Gson().fromJson(sr, WuhanDataBean.class);
+                            get_student_status(false, dataBean.school_code, dataBean.account_no, dataBean.account_name);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(this, "解析数据失败", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                } else {
+                    presenter.setPwdOrRegistAndLogin(loginEdMobile.getText().toString().trim(), regiVerCode.getText().toString().trim(),
+                            regiPassword.getText().toString().trim(), App.mAxLoginSp.getUUID().replace("-", ""));
+                }
+            }
+        }
+    }
+
+    private void get_student_status(final boolean isLogin, final String school_code, final String student_no, final String student_name) {
+        RetrofitFactory.setBaseUrl(AppConstant.URL);
+        Map<String, Object> map = new HashMap<>();
+        map.put("school_code", school_code);
+        map.put("student_no", student_no);
+        CustomerService customerService = ApiFactory.getFactory().create(CustomerService.class);
+        customerService.get_student_status(NetUtils.getRequestParams(this, map), NetUtils.getSign(NetUtils.getRequestParams(this, map)))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new BaseSubscriber<Object>(this, true, null) {
+                    @Override
+                    public void onNext(Object o) {
+                        StudentResponse studentResponse = new Gson().fromJson(o.toString(), StudentResponse.class);
+                        if (studentResponse.student_status.equals("Bound")) {
+                            WudaReqData wudaReqData = new WudaReqData();
+                            wudaReqData.school_code = school_code;
+                            wudaReqData.student_no = student_no;
+                            String hei = new Gson().toJson(wudaReqData);
+                            String encodedString = Base64.encodeToString(hei.getBytes(), Base64.NO_WRAP);
+                            trusted_platform_login(encodedString, App.mAxLoginSp.getUUID().replace("-", ""), md5(CooperateAppId.accesskey + encodedString + App.mAxLoginSp.getUUID().replace("-", "")));
+                        } else {
+                            //判断登录的账号是否绑定了学生
+                            if (isLogin) {
+                                login(loginEdMobile.getText().toString().trim(), loginEdPassword.getText().toString().trim(), App.mAxLoginSp.getUUID().replace("-", ""), school_code, student_name, student_no);
+                            } else {
+                                registAndLogin(regiMobile.getText().toString().trim(), regiVerCode.getText().toString().trim(),
+                                        regiPassword.getText().toString().trim(), App.mAxLoginSp.getUUID().replace("-", ""), school_code, student_name, student_no);
+                            }
+                        }
+                    }
+                });
+    }
+
+    public static class StudentResponse {
+        public BaseResponse resp;
+        public String student_status;
+    }
+
+    public class WudaReqData implements Serializable {
+        public String school_code;
+        public String student_no;
+    }
+
+    /**
+     * 第三方信任登录
+     *
+     * @param account
+     * @param attribute_code
+     * @param access_key
+     */
+    private void trusted_platform_login(String account, String attribute_code, String access_key) {
+        RetrofitFactory.setBaseUrl(AppConstant.URL);
+        Map<String, Object> map = new HashMap<>();
+        map.put("account", account);
+        map.put("account_type", "StudentNO");
+        map.put("attribute_code", attribute_code);
+        map.put("access_key", access_key);
+        CustomerService customerService = ApiFactory.getFactory().create(CustomerService.class);
+        customerService.trusted_platform_login(NetUtils.getRequestParams(this, map), NetUtils.getSign(NetUtils.getRequestParams(this, map)))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new BaseSubscriber<Object>(this, true, null) {
+                    @Override
+                    public void onNext(Object o) {
+                        final LoginVerPwdPresenter.LoginResponse response = new Gson().fromJson(o.toString(), LoginVerPwdPresenter.LoginResponse.class);
+                        try {
+                            //登录成功事项
+                            LoginChangeDataForApp.updateDataForApp(response);
+                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            finish();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            AxToast.showHttpErr(LoginActivity.this, e.getMessage());
+                        }
+                    }
+                });
+    }
+
+    /**
+     * 通过第三方登录-成功后需要绑定学生信息
+     *
+     * @param mobile
+     * @param pwd
+     * @param uuid
+     * @param school_code
+     * @param student_name
+     * @param student_no
+     */
+    public void login(String mobile, String pwd, String uuid, final String school_code, final String student_name, final String student_no) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("mobile", mobile);
+        map.put("password", pwd);
+        map.put("attribute_code", uuid);
+        LoginService loginService = ApiFactory.getFactory().create(LoginService.class);
+        loginService.login(NetUtils.getRequestParams(this, map), NetUtils.getSign(NetUtils.getRequestParams(this, map)))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new BaseSubscriber<Object>(this, true, null) {
+                    @Override
+                    public void onNext(Object o) {
+                        try {
+                            final LoginVerPwdPresenter.LoginResponse response = new Gson().fromJson(o.toString(), LoginVerPwdPresenter.LoginResponse.class);
+                            LoginChangeDataForApp.updateDataForApp(response);
+                            if (response.customer.fee_account != null) {
+                                if (response.customer.fee_account.status.equals("OK") || (!TextUtils.isEmpty(response.customer.fee_account.name) && !TextUtils.isEmpty(response.customer.fee_account.student_no))) {
+                                    Toast.makeText(mContext, "该账户已绑定", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    //去bind
+                                    bind_student(school_code, student_name, student_no);
+                                }
+                            } else {
+                                //去bind
+                                bind_student(school_code, student_name, student_no);
+                            }
+                        } catch (JsonSyntaxException e) {
+                            e.printStackTrace();
+                            AxToast.showHttpErr(LoginActivity.this, e.getMessage());
+                        }
+                    }
+                });
+    }
+
+    /**
+     * 通过第三方注册完 需要绑定学生信息
+     *
+     * @param mobile
+     * @param verCode
+     * @param pwd
+     * @param machineId
+     * @param school_code
+     * @param student_name
+     * @param student_no
+     */
+    public void registAndLogin(String mobile, String verCode, String pwd, String machineId, final String school_code, final String student_name, final String student_no) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("mobile", mobile);
+        map.put("secureity_code", verCode);
+        map.put("attribute_code", machineId);
+        RetrofitFactory.setBaseUrl(AppConstant.URL);
+        LoginService loginService = ApiFactory.getFactory().create(LoginService.class);
+
+        Observable<String> objectObservable;
+        map.put("password", pwd);
+        objectObservable = loginService.regist(NetUtils.getRequestParams(this, map), NetUtils.getSign(NetUtils.getRequestParams(this, map)));
+        objectObservable
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new BaseSubscriber<Object>(this, true, null) {
+                    @Override
+                    public void onNext(Object o) {
+                        try {
+                            final LoginVerPwdPresenter.LoginResponse response = new Gson().fromJson(o.toString(), LoginVerPwdPresenter.LoginResponse.class);
+                            LoginChangeDataForApp.updateDataForApp(response);
+                            if (response.customer.fee_account != null) {
+                                if (response.customer.fee_account.status.equals("OK") || (!TextUtils.isEmpty(response.customer.fee_account.name) && !TextUtils.isEmpty(response.customer.fee_account.student_no))) {
+                                    Toast.makeText(mContext, "该账户已绑定", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    //去bind
+                                    bind_student(school_code, student_name, student_no);
+                                }
+                            } else {
+                                //去bind
+                                bind_student(school_code, student_name, student_no);
+                            }
+                        } catch (JsonSyntaxException e) {
+                            e.printStackTrace();
+                            AxToast.showHttpErr(LoginActivity.this, e.getMessage());
+                        }
+                    }
+                });
+    }
+
+    private void bind_student(String school_code, String student_name, String student_no) {
+        RetrofitFactory.setBaseUrl(AppConstant.URL);
+        Map<String, Object> map = new HashMap<>();
+        map.put("school_code", school_code);
+        map.put("student_name", student_name);
+        map.put("student_no", student_no);
+        CustomerService customerService = ApiFactory.getFactory().create(CustomerService.class);
+        customerService.bind_student(NetUtils.getRequestParams(this, map), NetUtils.getSign(NetUtils.getRequestParams(this, map)))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new BaseSubscriber<Object>(this, true, null) {
+                    @Override
+                    public void onNext(Object o) {
+                        try {
+                            final CustomerResponse customerResponse = new Gson().fromJson(o.toString(), CustomerResponse.class);
+                            if (customerResponse.resp.resp_code.equals(AppConstant.SUCCESS)) {
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                finish();
+                            }
+                        } catch (JsonSyntaxException e) {
+                            e.printStackTrace();
+                            AxToast.showHttpErr(LoginActivity.this, e.getMessage());
+                        }
+                    }
+                });
+    }
+
+    private void goLoginSelectCityActivity() {
+        Intent intent = new Intent(this, LoginSelectCityActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putString(LoginSelectCityActivity.EXTRA_FROM_LOGIN,LoginSelectCityActivity.EXTRA_FROM_LOGIN);
+        intent.putExtras(bundle);
+        startActivity(intent);
+    }
 }

@@ -6,6 +6,7 @@ import com.cocosw.favor.FavorAdapter;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.zhihuianxin.xyaxf.data.IAXLogin;
 import com.zhihuianxin.xyaxf.data.ISession;
+import com.zhihuianxin.xyaxf.util.ESUUID;
 
 public class App extends Application {
 
@@ -19,6 +20,10 @@ public class App extends Application {
 
         mAxLoginSp = new FavorAdapter.Builder(getApplicationContext()).build().create(IAXLogin.class);
         mSession = new FavorAdapter.Builder(getApplicationContext()).build().create(ISession.class);
+
+        //生成uuid
+        ESUUID esuuid = new ESUUID();
+        esuuid.load();
     }
 
     /**

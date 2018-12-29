@@ -239,16 +239,6 @@
                     android:layout_margin="@dimen/s15"
                     android:background="@drawable/input_phone_s">
 
-                    <EditText
-                        android:id="@+id/editText_ver"
-                        style="@style/edit_text"
-                        android:layout_centerVertical="true"
-                        android:layout_toLeftOf="@+id/pwdlook_ver"
-                        android:background="@null"
-                        android:hint="请输入密码"
-                        android:inputType="textPassword"
-                        android:numeric="integer" />
-
                     <RelativeLayout
                         android:id="@+id/pwdlook_ver"
                         android:layout_width="wrap_content"

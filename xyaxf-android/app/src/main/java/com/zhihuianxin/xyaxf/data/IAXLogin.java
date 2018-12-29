@@ -28,4 +28,9 @@ public interface IAXLogin {
     @Default("false")
     boolean getHadShowSplash();
     void setHadShowSplash(boolean flag);
+
+    // UUID
+    @Default("")
+    String getUUID();
+    void setUUID(String uuid);
 }

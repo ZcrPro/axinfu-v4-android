@@ -11,11 +11,14 @@ import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.text.TextUtils;
+import android.util.Base64;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -360,5 +363,64 @@ public class Util {
 
     public static String getAPKNameFromUrl(String url){
         return url.substring(url.lastIndexOf("/") + 1);
+    }
+
+    public static String Decrypt(String src, String key) throws Exception {
+        try {
+            // 判断Key是否正确
+            if (key == null) {
+                System.out.print("Key为空null");
+                return null;
+            }
+            // 密钥补位
+            int plus = 16 - key.length();
+            byte[] data = key.getBytes("utf-8");
+            byte[] raw = new byte[16];
+            byte[] plusbyte = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+            for (int i = 0; i < 16; i++) {
+                if (data.length > i)
+                    raw[i] = data[i];
+                else
+                    raw[i] = plusbyte[plus];
+            }
+            SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+            byte[] encrypted1 = Base64.decode(src.getBytes("UTF-8"),Base64.NO_WRAP);//base64
+            try {
+                byte[] original = cipher.doFinal(encrypted1);
+                String originalString = new String(original, "utf-8");
+                return originalString;
+            } catch (Exception e) {
+                System.out.println(e.toString());
+                return null;
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
+            return null;
+        }
+    }
+
+    public static String md5(String string) {
+        if (TextUtils.isEmpty(string)) {
+            return "";
+        }
+        MessageDigest md5 = null;
+        try {
+            md5 = MessageDigest.getInstance("MD5");
+            byte[] bytes = md5.digest(string.getBytes());
+            String result = "";
+            for (byte b : bytes) {
+                String temp = Integer.toHexString(b & 0xff);
+                if (temp.length() == 1) {
+                    temp = "0" + temp;
+                }
+                result += temp;
+            }
+            return result;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }
