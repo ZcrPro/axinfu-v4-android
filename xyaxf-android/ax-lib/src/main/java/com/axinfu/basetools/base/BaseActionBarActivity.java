@@ -4,6 +4,7 @@ package com.axinfu.basetools.base;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -26,6 +27,8 @@ public class BaseActionBarActivity extends BaseActivity {
 
     private ViewGroup mContainerView;
     private TextView mTitle;
+
+    protected DisplayMetrics metrics;
 
     @Override
     public void setContentView(@LayoutRes int layoutResID) {
@@ -217,5 +220,12 @@ public class BaseActionBarActivity extends BaseActivity {
     @Override
     protected int getFragmentContentId() {
         return 0;
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
     }
 }
