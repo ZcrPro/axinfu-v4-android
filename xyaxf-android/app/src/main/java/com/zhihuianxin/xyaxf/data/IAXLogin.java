@@ -33,4 +33,9 @@ public interface IAXLogin {
     @Default("")
     String getUUID();
     void setUUID(String uuid);
+
+    // 保存刚选择了的学校
+    @Default("")
+    String getSelectSchoolCode();
+    void setSelectSchoolCode(String flag);
 }

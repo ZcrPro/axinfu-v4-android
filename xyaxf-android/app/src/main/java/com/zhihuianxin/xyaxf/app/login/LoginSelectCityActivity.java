@@ -254,9 +254,9 @@ public class LoginSelectCityActivity extends BaseActionBarActivity implements IL
         animator2.start();
         searchEdit.setFocusable(true);
         @SuppressLint("WrongConstant") InputMethodManager imm = (InputMethodManager) getSystemService("input_method");//Context.INPUT_METHOD_SERVICE
+        assert imm != null;
         imm.hideSoftInputFromWindow(searchEdit.getWindowToken(), 0);
         graySearchBg.setVisibility(View.GONE);
         searchList.setVisibility(View.GONE);
-        //mSearchEdit.setText("");
     }
 }

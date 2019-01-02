@@ -21,7 +21,6 @@ public class LoginChangeDataForApp {
         App.mAxLoginSp.setLoginSign(true);
     }
 
-
     /**
      * 根据具体数据更新
      * @param customer
@@ -29,6 +28,16 @@ public class LoginChangeDataForApp {
      */
     public static void updateDataForApp(Customer customer, String session) {
         App.mSession.setSession(session);
+        App.mAxLoginSp.setUserMobil(customer.base_info.mobile);
+        App.mAxLoginSp.setRegistSerial(customer.base_info.regist_serial);
+        App.mAxLoginSp.setLoginSign(true);
+    }
+
+    /**
+     * 根据具体数据更新
+     * @param customer
+     */
+    public static void updateDataForApp(Customer customer) {
         App.mAxLoginSp.setUserMobil(customer.base_info.mobile);
         App.mAxLoginSp.setRegistSerial(customer.base_info.regist_serial);
         App.mAxLoginSp.setLoginSign(true);

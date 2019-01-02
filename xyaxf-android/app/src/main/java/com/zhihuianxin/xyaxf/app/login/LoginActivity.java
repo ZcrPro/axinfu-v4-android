@@ -33,7 +33,7 @@ import com.google.gson.JsonSyntaxException;
 import com.zhihuianxin.xyaxf.App;
 import com.zhihuianxin.xyaxf.R;
 import com.zhihuianxin.xyaxf.app.login.contract.ILoginHasPwdContract;
-import com.zhihuianxin.xyaxf.app.login.presenter.LoginSetPwdOrRegistPresenter;
+import com.zhihuianxin.xyaxf.app.login.presenter.LoginHasPwdPresenter;
 import com.zhihuianxin.xyaxf.app.login.presenter.LoginVerPwdPresenter;
 import com.zhihuianxin.xyaxf.app.main.MainActivity;
 import com.zhihuianxin.xyaxf.app.main.resp.CustomerResponse;
@@ -151,8 +151,8 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
 
     @Override
     public void loginSuccess(Customer customer, String session) {
-        LoginChangeDataForApp.updateDataForApp(customer,session);
-        if (customer.school!=null) {
+        LoginChangeDataForApp.updateDataForApp(customer, session);
+        if (customer.school != null) {
             startActivity(new Intent(this, MainActivity.class));
         } else {
             goLoginSelectCityActivity();
@@ -222,6 +222,7 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
         ButterKnife.inject(this);
+        new LoginHasPwdPresenter(this, this);
         initUI();
         metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -313,6 +314,60 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
                 }
 
                 if (regi_mobile_status && regi_sms_code_status && regi_password_status) {
+                    btnLogin.setEnabled(true);
+                } else {
+                    btnLogin.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        loginEdMobile.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!TextUtils.isEmpty(s.toString())) {
+                    login_mobile_status = true;
+                } else {
+                    login_mobile_status = false;
+                }
+
+                if (login_mobile_status && login_password_status) {
+                    btnLogin.setEnabled(true);
+                } else {
+                    btnLogin.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        loginEdPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (!TextUtils.isEmpty(s.toString())) {
+                    login_password_status = true;
+                } else {
+                    login_password_status = false;
+                }
+
+                if (login_mobile_status && login_password_status) {
                     btnLogin.setEnabled(true);
                 } else {
                     btnLogin.setEnabled(false);
@@ -651,7 +706,7 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
                         }
                     }
                 } else {
-                    presenter.setPwdOrRegistAndLogin(loginEdMobile.getText().toString().trim(), regiVerCode.getText().toString().trim(),
+                    presenter.setPwdOrRegistAndLogin(regiMobile.getText().toString().trim(), regiVerCode.getText().toString().trim(),
                             regiPassword.getText().toString().trim(), App.mAxLoginSp.getUUID().replace("-", ""));
                 }
             }
@@ -860,7 +915,7 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
     private void goLoginSelectCityActivity() {
         Intent intent = new Intent(this, LoginSelectCityActivity.class);
         Bundle bundle = new Bundle();
-        bundle.putString(LoginSelectCityActivity.EXTRA_FROM_LOGIN,LoginSelectCityActivity.EXTRA_FROM_LOGIN);
+        bundle.putString(LoginSelectCityActivity.EXTRA_FROM_LOGIN, LoginSelectCityActivity.EXTRA_FROM_LOGIN);
         intent.putExtras(bundle);
         startActivity(intent);
     }

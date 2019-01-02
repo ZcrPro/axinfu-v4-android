@@ -36,7 +36,13 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:label=""
             android:name=".app.login.LoginSelectCityActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:label=""
+            android:name=".app.login.LoginSelectSchoolActivity"
             android:screenOrientation="portrait" />
 
     </application>
