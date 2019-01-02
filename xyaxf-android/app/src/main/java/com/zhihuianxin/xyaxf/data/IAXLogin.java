@@ -38,4 +38,9 @@ public interface IAXLogin {
     @Default("")
     String getSelectSchoolCode();
     void setSelectSchoolCode(String flag);
+
+    // 是否点击过推送消息
+    @Default("true")
+    boolean getHasClickGetui();
+    void setHasClickGetui(boolean flag);
 }
