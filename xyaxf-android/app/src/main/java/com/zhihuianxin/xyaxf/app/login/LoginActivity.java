@@ -388,6 +388,11 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
         showSetPwdView();
     }
 
+    @OnClick(R.id.login_forgetpwd)
+    public void onBtnGetPwd() {
+        startActivity(new Intent(this, LoginVerMobileActivity.class));
+    }
+
     private void showSetPwdView() {
         backIcon.setVisibility(View.VISIBLE);
         loginEdPassword.setVisibility(View.GONE);

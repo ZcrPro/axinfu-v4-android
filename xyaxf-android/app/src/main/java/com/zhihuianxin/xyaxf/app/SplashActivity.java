@@ -22,6 +22,7 @@ import com.zhihuianxin.axutil.Util;
 import com.zhihuianxin.xyaxf.App;
 import com.zhihuianxin.xyaxf.R;
 import com.zhihuianxin.xyaxf.app.login.LoginActivity;
+import com.zhihuianxin.xyaxf.app.main.MainActivity;
 import com.zhihuianxin.xyaxf.database.DBLastVersion;
 import com.zhihuianxin.xyaxf.database.DBLastVersion_Table;
 
@@ -169,10 +170,8 @@ public class SplashActivity extends BaseActionBarActivity {
     }
 
     public void alreadyLogin() {
-//        startActivity(new Intent(this,MainActivity.class));
-//        finish();
-        Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show();
-
+        startActivity(new Intent(this,MainActivity.class));
+        finish();
     }
 
     class Adapter extends ArrayAdapter<String> {

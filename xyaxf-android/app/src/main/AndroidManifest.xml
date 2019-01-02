@@ -45,6 +45,31 @@
             android:name=".app.login.LoginSelectSchoolActivity"
             android:screenOrientation="portrait" />
 
+        <activity
+            android:name=".app.login.LoginVerMobileActivity"
+            android:label="输入手机号码"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".app.login.LoginGetPwdActivity"
+            android:label="找回密码"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".app.login.LoginGetPwdByCodeActivity"
+            android:label="重置密码"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".app.login.LoginGetPwdByVerMsgActivity"
+            android:label="核实身份信息"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".app.login.LoginSetPwdByFieldActivity"
+            android:label="设置密码"
+            android:screenOrientation="portrait" />
+
     </application>
 
 </manifest>
