@@ -17,6 +17,7 @@
             android:background="@color/axf_btn_uncheck_blue">
 
             <RelativeLayout
+                android:visibility="gone"
                 android:id="@+id/back_icon"
                 android:layout_width="30dp"
                 android:layout_height="fill_parent"

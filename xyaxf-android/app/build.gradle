@@ -142,4 +142,5 @@ dependencies {
     implementation(name: 'esafeExpTP', ext: 'aar')
     implementation 'com.github.open-android:PhotoImageView:0.1.0' //图片缩放
     implementation project(':ax-lib')
+    implementation 'com.qianwen:update-app:3.5.2'
 }

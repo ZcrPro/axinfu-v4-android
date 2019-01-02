@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.text.Selection;
@@ -30,6 +32,9 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.vector.update_app.HttpManager;
+import com.vector.update_app.UpdateAppManager;
+import com.zhihuianxin.axutil.Util;
 import com.zhihuianxin.xyaxf.App;
 import com.zhihuianxin.xyaxf.R;
 import com.zhihuianxin.xyaxf.app.login.contract.ILoginHasPwdContract;
@@ -47,6 +52,8 @@ import com.zhihuianxin.xyaxf.http.NetUtils;
 import com.zhihuianxin.xyaxf.http.RetrofitFactory;
 import com.zhihuianxin.xyaxf.modle.base.service.CustomerService;
 import com.zhihuianxin.xyaxf.modle.base.service.LoginService;
+import com.zhihuianxin.xyaxf.modle.base.service.MeService;
+import com.zhihuianxin.xyaxf.modle.base.thrift.app.Update;
 import com.zhihuianxin.xyaxf.modle.base.thrift.customer.Customer;
 import com.zhihuianxin.xyaxf.modle.base.thrift.customer.VerifyField;
 import com.zhihuianxin.xyaxf.util.AxToast;
@@ -238,10 +245,84 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
                 targeMobile = bundle.getString("mobile");
             }
         }
+
+        tvPhone.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:4000281024"));
+                startActivity(intent);
+            }
+        });
+
+        checkUpdateNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//              checkUpdate();
+            }
+        });
+    }
+
+    /**
+     * 检查更新
+     */
+    public void checkUpdate() {
+        RetrofitFactory.setBaseUrl(AppConstant.URL);
+        Map<String, Object> map = new HashMap<>();
+        MeService meService = ApiFactory.getFactory().create(MeService.class);
+        meService.getCheckUpdate(NetUtils.getRequestParams(this, map), NetUtils.getSign(NetUtils.getRequestParams(this, map)))
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new BaseSubscriber<Object>(this, false, null) {
+                    @Override
+                    public void onNext(Object o) {
+                        try {
+//                            GetCheckUpdateResponse response = new Gson().fromJson(o.toString(),GetCheckUpdateResponse.class);
+//                            Update update = response.app_update;
+//                            if (update == null) {
+//                                return;
+//                            }
+//                            if (Util.isEmpty(update.update_type) || update.update_type.equals("None")) {
+//                                Toast.makeText(LoginActivity.this, "当前版本已是最新版", Toast.LENGTH_SHORT).show();
+//                            } else {
+//                                Toast.makeText(LoginActivity.this, "检测到更新，前点击下载更新", Toast.LENGTH_SHORT).show();
+//                                checkUpdateNext.setText("下载更新");
+//                            }
+//                            if (response.app_update.update_type.equals("Required")) {// 强制更新
+                                new UpdateAppManager
+                                        .Builder()
+                                        //当前Activity
+                                        .setActivity(LoginActivity.this)
+                                        //更新地址
+                                        .setUpdateUrl("https://raw.githubusercontent.com/WVector/AppUpdateDemo/master/apk/sample-debug.apk")
+                                        //实现httpManager接口的对象
+                                        .setHttpManager(new HttpManager() {
+                                            @Override
+                                            public void asyncGet(@NonNull String url, @NonNull Map<String, String> params, @NonNull Callback callBack) {
+
+                                            }
+
+                                            @Override
+                                            public void asyncPost(@NonNull String url, @NonNull Map<String, String> params, @NonNull Callback callBack) {
+
+                                            }
+
+                                            @Override
+                                            public void download(@NonNull String url, @NonNull String path, @NonNull String fileName, @NonNull FileCallback callback) {
+
+                                            }
+                                        })
+                                        .build()
+                                        .update();
+//                            }
+                        } catch (JsonSyntaxException e) {
+                            e.printStackTrace();
+                            Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
     private void initUI() {
-
         regiMobile.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -923,5 +1004,21 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
         bundle.putString(LoginSelectCityActivity.EXTRA_FROM_LOGIN, LoginSelectCityActivity.EXTRA_FROM_LOGIN);
         intent.putExtras(bundle);
         startActivity(intent);
+    }
+
+    @OnClick(R.id.back_icon)
+    public void onBtnBackIcon() {
+            backToInputMobilResetVer();
+            topTitle.setText("登录");
+            loginEdMobile.setText("");
+            loginEdPassword.setText("");
+            showBackToInputAnim();
+            mCurrStatus = STATUE.INPUT;
+    }
+
+    public class GetCheckUpdateResponse {
+        public BaseResponse resp;
+        public Update app_update;
+        public ArrayList<Update> plugin_updates;
     }
 }
