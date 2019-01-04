@@ -1,5 +1,8 @@
 package com.zhihuianxin.xyaxf.modle.base.thrift.customer;
 
+import com.raizlabs.android.dbflow.annotation.Table;
+import com.zhihuianxin.xyaxf.constant.DBFlowDataBase;
+
 import java.io.Serializable;
 
 /**

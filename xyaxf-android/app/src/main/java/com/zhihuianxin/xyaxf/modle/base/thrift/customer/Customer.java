@@ -14,18 +14,16 @@ import java.util.List;
  */
 
 public class Customer implements Serializable {
-
-	public String mobile;
+	public String regist_serial; //注册序列号为本地自定义属性
 	public CustomerBaseInfo base_info ;  // required
 	public School school ;  // optional
 	public ECardAccount ecard_account ;  // optional
 	public FeeAccount fee_account ;  // optional
 	public List<Business> businesses;
 	public boolean is_could_cancel;
-	public boolean is_show_bind_card_guide =false;// 是否显示绑卡引导
+	public boolean is_show_bind_card_guide;// 是否显示绑卡引导
 	public String bind_card_short_hint;		// 绑卡引导提示 短
 	public String bind_card_long_hint;		// 绑卡引导提示 长
 	public StudentInfo student;
 	public boolean is_show_scan_pay_in_center;
-
 }

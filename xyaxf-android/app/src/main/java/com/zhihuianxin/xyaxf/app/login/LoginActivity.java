@@ -32,9 +32,6 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.vector.update_app.HttpManager;
-import com.vector.update_app.UpdateAppManager;
-import com.zhihuianxin.axutil.Util;
 import com.zhihuianxin.xyaxf.App;
 import com.zhihuianxin.xyaxf.R;
 import com.zhihuianxin.xyaxf.app.login.contract.ILoginHasPwdContract;
@@ -288,31 +285,7 @@ public class LoginActivity extends Activity implements ILoginHasPwdContract.ILog
 //                                checkUpdateNext.setText("下载更新");
 //                            }
 //                            if (response.app_update.update_type.equals("Required")) {// 强制更新
-                                new UpdateAppManager
-                                        .Builder()
-                                        //当前Activity
-                                        .setActivity(LoginActivity.this)
-                                        //更新地址
-                                        .setUpdateUrl("https://raw.githubusercontent.com/WVector/AppUpdateDemo/master/apk/sample-debug.apk")
-                                        //实现httpManager接口的对象
-                                        .setHttpManager(new HttpManager() {
-                                            @Override
-                                            public void asyncGet(@NonNull String url, @NonNull Map<String, String> params, @NonNull Callback callBack) {
 
-                                            }
-
-                                            @Override
-                                            public void asyncPost(@NonNull String url, @NonNull Map<String, String> params, @NonNull Callback callBack) {
-
-                                            }
-
-                                            @Override
-                                            public void download(@NonNull String url, @NonNull String path, @NonNull String fileName, @NonNull FileCallback callback) {
-
-                                            }
-                                        })
-                                        .build()
-                                        .update();
 //                            }
                         } catch (JsonSyntaxException e) {
                             e.printStackTrace();

@@ -3,6 +3,8 @@ package com.zhihuianxin.xyaxf;
 import android.app.Application;
 
 import com.cocosw.favor.FavorAdapter;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.zhihuianxin.xyaxf.data.IAXLogin;
 import com.zhihuianxin.xyaxf.data.ISession;
@@ -24,6 +26,9 @@ public class App extends Application {
         //生成uuid
         ESUUID esuuid = new ESUUID();
         esuuid.load();
+        //iamgeloader
+        ImageLoaderConfiguration configuration = new ImageLoaderConfiguration.Builder(getApplicationContext()).build();
+        ImageLoader.getInstance().init(configuration);
     }
 
     /**

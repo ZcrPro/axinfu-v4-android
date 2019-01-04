@@ -43,4 +43,8 @@ public interface IAXLogin {
     @Default("true")
     boolean getHasClickGetui();
     void setHasClickGetui(boolean flag);
+
+    @Default("")
+    String getLadmarkName();
+    void setLadmarkName(String name);
 }
